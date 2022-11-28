@@ -5,7 +5,7 @@ const crypto = require("crypto");
 
 app.set("view engine", "ejs");
 
-const generateRandomString() {
+const generateRandomString = function() {
   let result = crypto.randomBytes(3).toString('hex');
   console.log(result);
   return result;
@@ -20,11 +20,15 @@ const urlDatabase = {
 app.use(express.urlencoded({ extended: true }));
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  //console.log(req.body); // Log the POST request body to the console
+  const shortName = generateRandomString();
+  urlDatabase[shortName] = req.body.longURL;
+  //console.log(urlDatabase);
+  const templateVars = { id: shortName, longURL: urlDatabase[shortName] };
+  res.render("urls_show", templateVars);
 });
 
-// The order of route definitions matters! 
+// The order of route definitions matters!
 app.get("/", (req, res) => { // request and response
   res.send("Hello!");
 });
