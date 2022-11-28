@@ -19,6 +19,9 @@ const urlDatabase = {
 // a middleware piece
 app.use(express.urlencoded({ extended: true }));
 
+// EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
+
+
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
   const shortName = generateRandomString();
@@ -48,6 +51,7 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+// EDGE CASE: what if cx requests a short URL with a non-existant id?
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
