@@ -1,8 +1,15 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
+const crypto = require("crypto");
 
 app.set("view engine", "ejs");
+
+const generateRandomString() {
+  let result = crypto.randomBytes(3).toString('hex');
+  console.log(result);
+  return result;
+};
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
