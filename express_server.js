@@ -9,6 +9,7 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+// The order of route definitions matters! 
 app.get("/", (req, res) => { // request and response
   res.send("Hello!");
 });
@@ -16,6 +17,10 @@ app.get("/", (req, res) => { // request and response
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+app.get("/urls/new", (req, res) => {
+  res.render("urls_new");
 });
 
 app.get("/urls/:id", (req, res) => {
