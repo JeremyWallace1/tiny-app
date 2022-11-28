@@ -9,6 +9,9 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+// a middleware piece
+app.use(express.urlencoded({ extended: true }));
+
 // The order of route definitions matters! 
 app.get("/", (req, res) => { // request and response
   res.send("Hello!");
