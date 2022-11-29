@@ -20,19 +20,25 @@
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
+        <!-- EDIT BUTTON -->
+        <!-- <div class="card-header"></div> -->
+        <div class="card-header" >
+          <h5 class="card-title" style="color: grey; font-size:x-large ;">Edit</h5>
+          <form class="form-center" action="/urls" method="POST"> <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form.-->
+            <label for="longURL">New URL:</label>
+            <!--The name attribute identifies the data we are sending-->
+            <input
+              class="form-center"
+              type="text"
+              name="longURL"
+              placeholder="<%= longURL %>"
+              style="width: 300px; margin: 1em"
+            />
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </form>
+        </div>
       </div>
-      <div class="card-footer text-muted"></div>
-    </div>
-    <!-- EDIT BUTTON -->
-    <div class="card text-center">
-      <div class="card-header"></div>
-      <div class="card-body">
-        <h5 class="card-title">Edit</h5>
-        <p class="card-text">
-          <td><form method="POST" action="/urls/<%= id %>"><button type="submit" style="background-color: white; padding: 4px 13px; margin: 0px 0px; border: 0.5mm solid blue; color: blue; border-radius: 5px;">Submit</button></form></td>
-        </p>
-      </div>
-      <div class="card-footer text-muted"></div>
+    <div class="card-footer text-muted"></div>
     </div>
 
     <!-- Bootstrap JS -->
