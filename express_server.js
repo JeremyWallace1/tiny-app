@@ -1,9 +1,12 @@
 const express = require("express");
+const cookieParser = require('cookie-parser');
+
 const app = express();
+app.set("view engine", "ejs");
+app.use(cookieParser());
+
 const PORT = 8080; // default port 8080
 const crypto = require("crypto");
-
-app.set("view engine", "ejs");
 
 const generateRandomString = function() {
   let result = crypto.randomBytes(3).toString('hex');
