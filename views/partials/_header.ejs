@@ -19,7 +19,7 @@
       </div>
         <!-- create a form that POSTs to /login -->
         <form class="form-inline" action="/login" method="POST"> <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form.-->
-          <div class="form-group mb-2">
+          <div class="form-group mb-2" style="margin-left: 200px; margin-right: 0;">
             <label for="username">Login</label>
             <!--The name attribute identifies the data we are sending-->
             <input
@@ -30,6 +30,9 @@
               style="width: 300px; margin: 1em"
             />
             <button type="submit" class="btn btn-primary">Submit</button>
+            <div>
+              <p style="color: greenyellow; background-color: black; margin-left: 25px; margin-right: 0;" >Welcome <%= username %>!</style>
+            </div>
           </div>
         </form>
     </div>
