@@ -25,15 +25,17 @@ app.use(express.urlencoded({ extended: true }));
 app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
   delete urlDatabase[req.params.id];
-  const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
+  res.redirect("/urls");
 });
 
 app.post("/urls/:id", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
   //console.log(urlDatabase);
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
-  res.render("urls_show", templateVars);
+  //rewrite the entry in urlDatabase for the id passed using the body passed from the form.
+  const id = req.params.id;
+  urlDatabase[id] = req.body.longURL;
+
+  res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
