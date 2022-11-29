@@ -21,13 +21,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
 
-
+// DELETE (done as POST, but ideally done as DELETE due to browser limitations)
 app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
 
+// UPDATE (done as POST, but ideally done as PUT due to browser limitations)
 app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
   urlDatabase[req.params.id] = req.body.longURL;
