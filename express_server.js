@@ -29,6 +29,15 @@ app.post("/urls/:id/delete", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.post("/urls/:id", (req, res) => {
+  //console.log(req.body); // Log the POST request body to the console
+  const shortName = generateRandomString();
+  urlDatabase[shortName] = req.body.longURL;
+  //console.log(urlDatabase);
+  const templateVars = { id: shortName, longURL: urlDatabase[shortName] };
+  res.render("urls_show", templateVars);
+});
+
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
   const shortName = generateRandomString();
