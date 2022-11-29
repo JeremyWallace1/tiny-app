@@ -3,7 +3,6 @@ const cookieParser = require('cookie-parser');
 
 const app = express();
 app.set("view engine", "ejs");
-app.use(cookieParser());
 
 const PORT = 8080; // default port 8080
 const crypto = require("crypto");
@@ -19,8 +18,9 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
-// a middleware piece
+// middleware pieces
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
 
@@ -35,6 +35,13 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
   urlDatabase[req.params.id] = req.body.longURL;
+  res.redirect("/urls");
+});
+
+// add an endpoint to handle a POST to /login in your Express server
+app.post("/login", (req, res) => {
+  res.cookie("username", req.body.username); // I think this is async
+  console.log('Cookies: ', req.cookies); // so this is coming before the new value
   res.redirect("/urls");
 });
 
