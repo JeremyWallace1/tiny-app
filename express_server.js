@@ -22,6 +22,13 @@ app.use(express.urlencoded({ extended: true }));
 // EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
 
 
+app.post("/urls/:id/delete", (req, res) => {
+  // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
+  delete urlDatabase[req.params.id];
+  const templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+});
+
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
   const shortName = generateRandomString();
