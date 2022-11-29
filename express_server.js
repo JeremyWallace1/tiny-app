@@ -29,12 +29,8 @@ app.post("/urls/:id/delete", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
-  //console.log(urlDatabase);
-  //rewrite the entry in urlDatabase for the id passed using the body passed from the form.
-  const id = req.params.id;
-  urlDatabase[id] = req.body.longURL;
-
+  //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
+  urlDatabase[req.params.id] = req.body.longURL;
   res.redirect("/urls");
 });
 

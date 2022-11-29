@@ -34,7 +34,7 @@
             <tr>
               <td><%= id %></td>
               <td><%= urls[id] %></td>
-              <td><form method="POST" action="/urls/<%= id %>"><button type="submit" style="background-color: white; padding: 4px 13px; margin: 0px 0px; border: 0.5mm solid blue; color: blue; border-radius: 5px;">Edit</button></form></td>
+              <td><form method="GET" action="/urls/<%= id %>"><button type="submit" style="background-color: white; padding: 4px 13px; margin: 0px 0px; border: 0.5mm solid blue; color: blue; border-radius: 5px;">Edit</button></form></td>
               <td><form method="POST" action="/urls/<%= id %>/delete"><button type="submit" style="background-color: white; padding: 4px 13px; margin: 0px 0px; border: 0.5mm solid rgb(235, 2, 2); color: rgb(235, 0, 0); border-radius: 5px;">Delete</button></form></td>
             </tr>
           <% } %>
