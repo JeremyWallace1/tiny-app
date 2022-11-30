@@ -1,12 +1,13 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
+const crypto = require("crypto");
+const { clear } = require("console");
+const morgan = require('morgan');
 
 const app = express();
 app.set("view engine", "ejs");
 
 const PORT = 8080; // default port 8080
-const crypto = require("crypto");
-const { clear } = require("console");
 
 const generateRandomString = function() {
   let result = crypto.randomBytes(3).toString('hex');
@@ -19,9 +20,23 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com",
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 // middleware pieces
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(morgan('dev'));
 
 // EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
 
@@ -30,6 +45,14 @@ app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
+});
+
+// endpoint to handle registration form data
+app.post("/register", (req, res) => {
+  const user_id = generateRandomString();
+  users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
+  //console.log(users);
+  return res.redirect("/urls")
 });
 
 // UPDATE (done as POST, but ideally done as PUT due to browser limitations)
