@@ -29,20 +29,10 @@
           </div>
 
       <% } else{ %>
-        <form class="form-inline" action="/login" method="POST"> <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form.-->
-          <div class="form-group mb-2" style="display: inline-block; text-align: right; min-width: max-content;">
-            <label for="user_id" style="display: inline-block; text-align: right; min-width: max-content;">Login</label>
-            <!--The name attribute identifies the data we are sending-->
-            <input
-              class="form-control"
-              type="text"
-              name="user_id" 
-              placeholder=""
-              style="width: 300px; margin: 1em"
-            />
-            <button type="submit" class="btn btn-primary">Submit</button>
-          </div>
-        </form>
+        <div class="navbar-nav" style="display: block; width: 100%">
+          <a class="nav-item nav-link" href="/register" style="display: inline-block; text-align: right; min-width: auto; color: darkgreen;"><strong>Register</strong></a>
+          <a class="nav-item nav-link" href="/login" style="display: inline-block; text-align: right; min-width: auto; color: darkgreen;"><strong>Login</strong></a>
+        </div>         
       <% } %>
     </div>
   </nav>

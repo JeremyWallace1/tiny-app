@@ -112,6 +112,11 @@ app.get("/", (req, res) => { // request and response
   res.send("Hello!");
 });
 
+app.get("/login", (req, res) => {
+  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
+  res.render("urls_login", templateVars);
+});
+
 app.get("/register", (req, res) => {
   const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
   res.render("urls_register", templateVars);
