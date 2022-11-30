@@ -19,9 +19,9 @@
       </div>
         <!-- create a form that POSTs to /login -->
         <!-- If the local (template) variable username is set/defined, display the username and a separate logout form which will POST to /logout. Otherwise, show the login form. -->
-        <% if (username){ %>
+        <% if (user_id){ %>
           <div class="nav-item" style="display: inline-block; text-align: right; min-width: max-content; margin-right: 20px;">
-            Logged in as: <%= username %>!
+            Logged in as: <%= user_id.email %>!
           </div>
           <div class="nav-item" style="display: inline-block; text-align: right; min-width: max-content;">
             <form method="POST" action="/logout">
@@ -31,12 +31,12 @@
       <% } else{ %>
         <form class="form-inline" action="/login" method="POST"> <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form.-->
           <div class="form-group mb-2" style="display: inline-block; text-align: right; min-width: max-content;">
-            <label for="username" style="display: inline-block; text-align: right; min-width: max-content;">Login</label>
+            <label for="user_id" style="display: inline-block; text-align: right; min-width: max-content;">Login</label>
             <!--The name attribute identifies the data we are sending-->
             <input
               class="form-control"
               type="text"
-              name="username" 
+              name="user_id" 
               placeholder=""
               style="width: 300px; margin: 1em"
             />

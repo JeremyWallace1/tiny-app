@@ -50,11 +50,11 @@ app.post("/urls/:id/delete", (req, res) => {
 // endpoint to handle registration form data
 app.post("/register", (req, res) => {
   const user_id = generateRandomString();
-  console.log (`user_id: ${user_id}`);
+  //console.log (`user_id: ${user_id}`);
   users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
-  console.log("users:", users);
+  //console.log("users:", users);
   res.cookie("user_id", users[user_id]); // I think this is async
-  console.log('Cookies: ', req.cookies.user_id); // so this is coming before the new value
+  //console.log('Cookies: ', req.cookies.user_id); // so this is coming before the new value
   return res.redirect("/urls")
 });
 
@@ -67,14 +67,14 @@ app.post("/urls/:id", (req, res) => {
 
 // add an endpoint to handle a POST to /login in your Express server
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username); // I think this is async
+  res.cookie("user_id", req.body.user_id); // I think this is async
   console.log('Cookies: ', req.cookies); // so this is coming before the new value
   res.redirect("/urls");
 });
 
 // add an endpoint to handle a POST to /logout in your Express server
 app.post("/logout", (req, res) => {
-  res.clearCookie("username", req.body.username); // I think this is async
+  res.clearCookie("user_id", req.body.user_id); // I think this is async
   console.log('Cookies: ', req.cookies); // so this is coming before the new value
   res.redirect("/urls");
 });
@@ -94,17 +94,17 @@ app.get("/", (req, res) => { // request and response
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
+  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
   res.render("urls_register", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
+  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] }
+  const templateVars = { user_id: req.cookies["user_id"] }
   res.render("urls_new", templateVars);
 });
 
@@ -116,7 +116,7 @@ app.get("/u/:id", (req, res) => {
 
 // EDGE CASE: what if cx requests a short URL with a non-existant id?
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { username: req.cookies["username"], id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { user_id: req.cookies["user_id"], id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
 });
 
