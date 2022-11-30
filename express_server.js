@@ -6,6 +6,7 @@ app.set("view engine", "ejs");
 
 const PORT = 8080; // default port 8080
 const crypto = require("crypto");
+const { clear } = require("console");
 
 const generateRandomString = function() {
   let result = crypto.randomBytes(3).toString('hex');
@@ -41,6 +42,13 @@ app.post("/urls/:id", (req, res) => {
 // add an endpoint to handle a POST to /login in your Express server
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username); // I think this is async
+  console.log('Cookies: ', req.cookies); // so this is coming before the new value
+  res.redirect("/urls");
+});
+
+// add an endpoint to handle a POST to /logout in your Express server
+app.post("/logout/:username", (req, res) => {
+  res.clearCookie("username", req.body.username); // I think this is async
   console.log('Cookies: ', req.cookies); // so this is coming before the new value
   res.redirect("/urls");
 });

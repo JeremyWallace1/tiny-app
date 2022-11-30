@@ -13,14 +13,25 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-      <div class="navbar-nav">
-        <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
+      <div class="navbar-nav" style="display: block; width: 100%">
+        <a class="nav-item nav-link" href="/urls" style="display: inline-block; text-align: left; min-width: auto;">My URLs</a>
+        <a class="nav-item nav-link" href="/urls/new" style="display: inline-block; text-align: left; min-width: auto;">Create New URL</a>
       </div>
         <!-- create a form that POSTs to /login -->
+        <!-- If the local (template) variable username is set/defined, display the username and a separate logout form which will POST to /logout. Otherwise, show the login form. -->
+        <% if (username){ %>
+          <div class="nav-item" style="display: inline-block; text-align: right; min-width: max-content; margin-right: 20px;">
+            Logged in as: <%= username %>!
+          </div>
+          <div class="nav-item" style="display: inline-block; text-align: right; min-width: max-content;">
+            <form method="POST" action="/logout/<%= username %>">
+              <button type="submit" style=" padding: 4px 13px; background-color: transparent; margin-right: 20px; border: 0.5mm solid rgb(0, 0, 0); color: rgb(0, 0, 0); border-radius: 5px;">Logout</button></form>
+          </div>
+
+      <% } else{ %>
         <form class="form-inline" action="/login" method="POST"> <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form.-->
-          <div class="form-group mb-2" style="margin-left: 200px; margin-right: 0;">
-            <label for="username">Login</label>
+          <div class="form-group mb-2" style="display: inline-block; text-align: right; min-width: max-content;">
+            <label for="username" style="display: inline-block; text-align: right; min-width: max-content;">Login</label>
             <!--The name attribute identifies the data we are sending-->
             <input
               class="form-control"
@@ -30,11 +41,9 @@
               style="width: 300px; margin: 1em"
             />
             <button type="submit" class="btn btn-primary">Submit</button>
-            <div>
-              <p style="color: greenyellow; background-color: black; margin-left: 25px; margin-right: 0;" >Welcome <%= username %>!</style>
-            </div>
           </div>
         </form>
+      <% } %>
     </div>
   </nav>
 
