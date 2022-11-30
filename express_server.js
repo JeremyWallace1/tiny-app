@@ -44,36 +44,39 @@ app.use(morgan('dev'));
 app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
   delete urlDatabase[req.params.id];
-  return res.redirect("/urls");
+  res.redirect("/urls");
 });
 
 // endpoint to handle registration form data
 app.post("/register", (req, res) => {
-  const userID = generateRandomString();
-  users[userID] = { id: userID, email: req.body.email, password: req.body.password };
-  //console.log(users);
-  return res.redirect("/urls");
+  const user_id = generateRandomString();
+  console.log (`user_id: ${user_id}`);
+  users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
+  console.log("users:", users);
+  res.cookie("user_id", users[user_id]); // I think this is async
+  console.log('Cookies: ', req.cookies.user_id); // so this is coming before the new value
+  return res.redirect("/urls")
 });
 
 // UPDATE (done as POST, but ideally done as PUT due to browser limitations)
 app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
   urlDatabase[req.params.id] = req.body.longURL;
-  return res.redirect("/urls");
+  res.redirect("/urls");
 });
 
 // add an endpoint to handle a POST to /login in your Express server
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username); // I think this is async
   console.log('Cookies: ', req.cookies); // so this is coming before the new value
-  return res.redirect("/urls");
+  res.redirect("/urls");
 });
 
 // add an endpoint to handle a POST to /logout in your Express server
 app.post("/logout", (req, res) => {
   res.clearCookie("username", req.body.username); // I think this is async
   console.log('Cookies: ', req.cookies); // so this is coming before the new value
-  return res.redirect("/urls");
+  res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
@@ -82,47 +85,47 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortName] = req.body.longURL;
   //console.log(urlDatabase);
   const templateVars = { id: shortName, longURL: urlDatabase[shortName] };
-  return res.render("urls_show", templateVars);
+  res.render("urls_show", templateVars);
 });
 
 // The order of route definitions matters!
 app.get("/", (req, res) => { // request and response
-  return res.send("Hello!");
+  res.send("Hello!");
 });
 
 app.get("/register", (req, res) => {
   const templateVars = { username: req.cookies["username"], urls: urlDatabase };
-  return res.render("urls_register", templateVars);
+  res.render("urls_register", templateVars);
 });
 
 app.get("/urls", (req, res) => {
   const templateVars = { username: req.cookies["username"], urls: urlDatabase };
-  return res.render("urls_index", templateVars);
+  res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
-  return res.render("urls_new", templateVars);
+  const templateVars = { username: req.cookies["username"] }
+  res.render("urls_new", templateVars);
 });
 
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
   // console.log(longURL);
-  return res.redirect(longURL);
+  res.redirect(longURL);
 });
 
 // EDGE CASE: what if cx requests a short URL with a non-existant id?
 app.get("/urls/:id", (req, res) => {
   const templateVars = { username: req.cookies["username"], id: req.params.id, longURL: urlDatabase[req.params.id] };
-  return .render("urls_show", templateVars);
+  res.render("urls_show", templateVars);
 });
 
 app.get("/urls.json", (req, res) => {
-  return res.json(urlDatabase);
+  res.json(urlDatabase);
 });
 
 app.get("/hello", (req, res) => {
-  return res.send("<html><body>Hello <b>World</b></body></html>\n");
+  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
