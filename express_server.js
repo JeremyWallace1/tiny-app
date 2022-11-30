@@ -47,7 +47,7 @@ app.post("/login", (req, res) => {
 });
 
 // add an endpoint to handle a POST to /logout in your Express server
-app.post("/logout/:username", (req, res) => {
+app.post("/logout", (req, res) => {
   res.clearCookie("username", req.body.username); // I think this is async
   console.log('Cookies: ', req.cookies); // so this is coming before the new value
   res.redirect("/urls");
