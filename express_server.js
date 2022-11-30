@@ -9,10 +9,20 @@ app.set("view engine", "ejs");
 
 const PORT = 8080; // default port 8080
 
+// HELPER FUNCTIONS
 const generateRandomString = function() {
   let result = crypto.randomBytes(3).toString('hex');
   console.log(result);
   return result;
+};
+
+const findUserByField = function(field, value) {
+  for (let user in users) {
+    if (users[user][field] === value) {
+      return true;
+    }
+  }
+  return false;
 };
 
 const urlDatabase = {
@@ -49,12 +59,21 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // endpoint to handle registration form data
 app.post("/register", (req, res) => {
+  // If the e-mail or password are empty strings, send back a response with the 400 status code.
+  if (req.body.email === "" || req.body.password === "") {
+    return res.status(400).send('400 - Bad Request');
+  }
+  // If someone tries to register with an email that is already in the users object, send back a response with the 400 status code.
+  const emailFound = findUserByField("email", req.body.email);
+
+  if (emailFound) {
+    return res.status(400).send('400 - Bad Request');
+  }
+
   const user_id = generateRandomString();
-  //console.log (`user_id: ${user_id}`);
   users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
-  //console.log("users:", users);
   res.cookie("user_id", users[user_id]); // I think this is async
-  //console.log('Cookies: ', req.cookies.user_id); // so this is coming before the new value
+  console.log(users);
   return res.redirect("/urls")
 });
 
