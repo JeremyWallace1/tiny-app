@@ -1,11 +1,9 @@
 const express = require("express");
 //const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
-const crypto = require("crypto");
-//const { clear } = require("console");
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
-const { generateRandomString, matchPassword, urlsForUser, findUserByEmail } = require("./helpers");
+const { generateRandomString, matchPassword, urlsForUser, getUserByEmail } = require("./helpers");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -38,7 +36,7 @@ const urlDatabase = {
   },
 };
 
-//just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done
+//just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done.
 const password1 = "purple-monkey-dinosaur";
 const hashedPassword1 = bcrypt.hashSync(password1, 10);
 const password2 = "dishwasher-funk";
@@ -83,24 +81,28 @@ app.post("/urls/:id/delete", (req, res) => {
 // endpoint to handle registration form data
 app.post("/register", (req, res) => {
   // If the e-mail or password are empty strings, send back a response with the 400 status code.
-  // if (req.body.email === "" || req.body.password === "") {
-  //   return res.status(400).send('400 - Bad Request');
-  // }
-  // // If someone tries to register with an email that is already in the users object, send back a response with the 400 status code.
-  // const found = findUserByEmail(req.body.email);
-
-  // if (found) {
-  //   return res.status(400).send('400 - Bad Request');
-  // }
+  if (req.body.email === "" || req.body.password === "") {
+    return res.status(400).send('400 - Bad Request');
+  }
+  // If someone tries to register with an email that is already in the users object, send back a response with the 400 status code.
+  console.log(users);
+  const found = getUserByEmail(req.body.email, users);
+  console.log("found:", found);
+  if (found) {
+    console.log("found:", found);
+    return res.status(400).send('400 - Bad Request');
+  }
 
   const user_id = generateRandomString();
   // console.log(user_id);
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   users[user_id] = { id: user_id, email: req.body.email, password: hashedPassword };
+  
   // console.log(users[user_id]);
   //res.cookie("user_id", users[user_id]); // I think this is async
   req.session = users[user_id];
   // console.log('req.session:', req.session);
+  console.log('user database:\n', users);
   return res.redirect("/urls");
 });
 
@@ -122,7 +124,7 @@ app.post("/urls/:id", (req, res) => {
 // add an endpoint to handle a POST to /login in your Express server
 app.post("/login", (req, res) => {
 
-  const emailFound = findUserByEmail(req.body.email, users);
+  const emailFound = getUserByEmail(req.body.email, users);
   // console.log('email found:', emailFound);
   // console.log('req.session:', req.session);
   // If a user with that e-mail cannot be found, return a response with a 403 status code.

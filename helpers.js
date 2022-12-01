@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 // HELPER FUNCTIONS
 const generateRandomString = function() {
@@ -34,14 +35,15 @@ const urlsForUser = function(id, database) {
   return newDatabase;
 };
 
-const findUserByEmail = function(email, database) {
+const getUserByEmail = function(email, database) {
   for (let user in database) {
     //console.log('user:', [users[user]]);
     if (database[user].email === email) {
+      console.log('user id that was found:', database[user].id);
       return database[user].id;
     }
   }
-  return false;
+  return;
 };
 
-module.exports = { generateRandomString, matchPassword, urlsForUser, findUserByEmail };
+module.exports = { generateRandomString, matchPassword, urlsForUser, getUserByEmail };
