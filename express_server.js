@@ -96,6 +96,10 @@ app.use(morgan('dev'));
 // DELETE (done as POST, but ideally done as DELETE due to browser limitations)
 app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
+  // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
+  if (!req.cookies.user_id) {
+    return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
+  } 
   delete urlDatabase[req.params.id];
   res.redirect("/urls");
 });
@@ -123,6 +127,10 @@ app.post("/register", (req, res) => {
 // UPDATE (done as POST, but ideally done as PUT due to browser limitations)
 app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
+  // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
+  if (!req.cookies.user_id) {
+    return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
+  } 
   urlDatabase[req.params.id.longURL] = req.body.longURL;
   res.redirect("/urls");
 });
@@ -206,14 +214,9 @@ app.get("/urls", (req, res) => {
     // The GET /urls page should only show the logged in user's URLs. 
     const userUrlDatabase = urlsForUser(req.cookies.user_id);
     console.log('urls for user id:', userUrlDatabase);
-    if (userUrlDatabase) {
-      const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
-      res.render("urls_index", templateVars);
-    } else {
-      const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
-      res.render("urls_index", templateVars);
-  
-    }
+
+    const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
+    res.render("urls_index", templateVars);
 }
 });
 
@@ -242,11 +245,18 @@ app.get("/u/:id", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   // Ensure the GET /urls/:id page returns a relevant error message to the user if they are not logged in.
   if (!req.cookies.user_id) {
-    res.redirect("/login");
-  } else {
-    const templateVars = { user_id: req.cookies["user_id"], id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
-    res.render("urls_show", templateVars);
+    return res.status(400).send('BAD REQUEST:<br>Please login to view details of this shortened URL.<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
+  } 
+    // Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
+  const userID = req.cookies.user_id;
+  console.log('id:', req.params.id);
+  const userUrlDatabase = urlsForUser(userID);
+  console.log(userUrlDatabase, req.params.id);
+  if (userUrlDatabase && (req.params.id in userUrlDatabase)) {
+    const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
+    return res.render("urls_show", templateVars);
   }
+  return res.status(403).send("FORBIDDEN: You don't have permission to access this item.\n")
 });
 
 app.get("/urls.json", (req, res) => {
