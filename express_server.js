@@ -1,7 +1,7 @@
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const crypto = require("crypto");
-//const { clear } = require("console");
+const { clear } = require("console");
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
 
