@@ -20,11 +20,14 @@
         <p class="card-text">
           Short URL ID: <a href="/u/<%= id %>"><%= id %></a>
         </p>
+        <p class="card-text">
+          Number of times used: <%= visits[id] %>
+        </p>
         <!-- EDIT BUTTON -->
         <!-- <div class="card-header"></div> -->
         <div class="card-header" >
           <h5 class="card-title" style="color: grey; font-size:x-large ;">Edit</h5>
-          <form class="form-center" action="/urls/<%= id %>" method="POST"> <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form.-->
+          <form class="form-center" action="/urls/<%= id %>?_method=PUT" method="POST"> <!-- The action attribute tells the form which URL to submit to while the method attribute tells the form which HTTP method to use when submitting the form.-->
             <label for="longURL">New URL:</label>
             <!--The name attribute identifies the data we are sending-->
             <input

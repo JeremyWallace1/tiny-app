@@ -4,6 +4,7 @@ const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
 const { generateRandomString, matchPassword, urlsForUser, getUserByEmail } = require("./helpers");
+const methodOverride = require('method-override');
 
 const app = express();
 app.set("view engine", "ejs");
@@ -19,6 +20,7 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000,
 }));
 app.use(morgan('dev'));
+app.use(methodOverride('_method'))
 
 // DATABASE OBJECTS
 // const urlDatabase = {
@@ -35,6 +37,9 @@ const urlDatabase = {
     userID: "user2RandomID",
   },
 };
+
+const visits = { b6UTxQ: 0, i3BoGr: 0 }; // # of visits
+
 
 //just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done.
 const password1 = "purple-monkey-dinosaur";
@@ -67,7 +72,7 @@ const users = {
 // EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
 
 // DELETE (done as POST, but ideally done as DELETE due to browser limitations)
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
   // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link.
   //if (!req.cookies.user_id) {
@@ -85,11 +90,11 @@ app.post("/register", (req, res) => {
     return res.status(400).send('400 - Bad Request');
   }
   // If someone tries to register with an email that is already in the users object, send back a response with the 400 status code.
-  console.log(users);
+  // console.log(users);
   const found = getUserByEmail(req.body.email, users);
-  console.log("found:", found);
+  // console.log("found:", found);
   if (found) {
-    console.log("found:", found);
+    // console.log("found:", found);
     return res.status(400).send('400 - Bad Request');
   }
 
@@ -107,7 +112,7 @@ app.post("/register", (req, res) => {
 });
 
 // UPDATE (done as POST, but ideally done as PUT due to browser limitations)
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
   // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link.
   //if (!req.cookies.user_id) {
@@ -242,6 +247,11 @@ app.get("/u/:id", (req, res) => {
   }
   const longURL = urlDatabase[req.params.id].longURL;
   // console.log(longURL);
+  if (!visits[req.params.id]) {
+    visits[req.params.id] = 0;
+  }
+  visits[req.params.id] += 1;
+  console.log("Number of visits to shortURLs:", visits);
   return res.redirect(longURL);
 });
 
@@ -259,7 +269,7 @@ app.get("/urls/:id", (req, res) => {
   const userUrlDatabase = urlsForUser(userID, urlDatabase);
   // console.log('userUrlDatabase:', userUrlDatabase, 'id:', req.params.id);
   if (userUrlDatabase && (req.params.id in userUrlDatabase)) {
-    const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
+    const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL, visits: visits };
     return res.render("urls_show", templateVars);
   }
   return res.status(403).send("FORBIDDEN: You don't have permission to access this item.\n");
