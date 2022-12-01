@@ -37,11 +37,11 @@ const urlDatabase = {
 };
 
 //just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done
-const password1 = "purple-monkey-dinosaur"; 
+const password1 = "purple-monkey-dinosaur";
 const hashedPassword1 = bcrypt.hashSync(password1, 10);
-const password2 = "dishwasher-funk"; 
+const password2 = "dishwasher-funk";
 const hashedPassword2 = bcrypt.hashSync(password2, 10);
-const password3 = "simple"; 
+const password3 = "simple";
 const hashedPassword3 = bcrypt.hashSync(password3, 10);
 
 const users = {
@@ -98,7 +98,7 @@ const urlsForUser = function(id) {
   for (let item in urlDatabase) {
     console.log('item:', item, 'user_id:', urlDatabase[item].userID, 'id.id:', id.id);
     if (urlDatabase[item].userID === id.id) {
-      newDatabase[item] = urlDatabase[item].longURL; 
+      newDatabase[item] = urlDatabase[item].longURL;
 
     }
   }
@@ -111,13 +111,13 @@ const urlsForUser = function(id) {
 // DELETE (done as POST, but ideally done as DELETE due to browser limitations)
 app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
-  // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
+  // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link.
   //if (!req.cookies.user_id) {
   if (!req.session.id) {
     return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
-  } 
+  }
   delete urlDatabase[req.params.id];
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // endpoint to handle registration form data
@@ -147,7 +147,7 @@ app.post("/register", (req, res) => {
 // UPDATE (done as POST, but ideally done as PUT due to browser limitations)
 app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
-  // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
+  // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link.
   //if (!req.cookies.user_id) {
   if (!req.session.id) {
     return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
@@ -156,7 +156,7 @@ app.post("/urls/:id", (req, res) => {
   // console.log('req.params.id:', req.params.id);
   // console.log('urlDatabase[req.params.id].longURL:', urlDatabase[req.params.id].longURL, 'req.body.longURL:', req.body.longURL);
   urlDatabase[req.params.id].longURL = req.body.longURL;
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // add an endpoint to handle a POST to /login in your Express server
@@ -186,7 +186,7 @@ app.post("/login", (req, res) => {
   console.log('req.session:', req.session);
   console.log('req.session.id:', req.session.id);
 
-  res.redirect("/urls");
+  return res.redirect("/urls");
 });
 
 // add an endpoint to handle a POST to /logout in your Express server
@@ -195,28 +195,28 @@ app.post("/logout", (req, res) => {
   req.session = null;
   //console.log('Cookies: ', req.cookies); // so this is coming before the new value
   console.log('req.session:', req.session);
-  res.redirect("/login");
+  return res.redirect("/login");
 });
 
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
   //if (!req.cookies.user_id) {
   if (!req.session.id) {
-    res.status(403).send("ACCESS DENIED: You must be logged in to shorten URLs.\n");
+    return res.status(403).send("ACCESS DENIED: You must be logged in to shorten URLs.\n");
   } else {
     const shortName = generateRandomString();
     //console.log(shortName, req.body, req.cookies.user_id.id);
     //urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.cookies.user_id.id };
     urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.session.id };
     //const templateVars = { id: shortName, longURL: urlDatabase[shortName].longURL };
-    res.redirect("/urls");
+    return res.redirect("/urls");
   }
   //console.log(urlDatabase);
 });
 
 // The order of route definitions matters!
 app.get("/", (req, res) => { // request and response
-  res.send("Hello!");
+  return res.send("Hello!");
 });
 
 app.get("/login", (req, res) => {
@@ -224,11 +224,11 @@ app.get("/login", (req, res) => {
   //if (req.cookies.user_id) {
   if (req.session.id) {
     console.log('req.session:', req.session);
-    res.redirect("/urls");
+    return res.redirect("/urls");
   } else {
     //const templateVars = { user_id: req.cookies["user_id"] };
     const templateVars = { user_id: req.session };
-    res.render("urls_login", templateVars);
+    return res.render("urls_login", templateVars);
   }
 });
 
@@ -236,11 +236,11 @@ app.get("/register", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
   //if (req.cookies.user_id) {
   if (req.session.id) {
-    res.redirect("/urls");
+    return res.redirect("/urls");
   } else {
     //const templateVars = { user_id: req.cookies["user_id"] };
     const templateVars = { user_id: req.session };
-    res.render("urls_register", templateVars);
+    return res.render("urls_register", templateVars);
   }
 });
 
@@ -248,15 +248,15 @@ app.get("/urls", (req, res) => {
   // Return HTML with a relevant error message at GET /urls if the user is not logged in.
   //if (!req.cookies.user_id) {
   if (!req.session.id) {
-    res.status(400).send('BAD REQUEST:<br>Please login to view your shortened URLs<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
+    return res.status(400).send('BAD REQUEST:<br>Please login to view your shortened URLs<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
   } else {
-    // The GET /urls page should only show the logged in user's URLs. 
+    // The GET /urls page should only show the logged in user's URLs.
     //const userUrlDatabase = urlsForUser(req.cookies.user_id);
     const userUrlDatabase = urlsForUser(req.session);
     console.log('urls for user id:', userUrlDatabase);
     //const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
     const templateVars = { user_id: req.session, urls: userUrlDatabase };
-  res.render("urls_index", templateVars);
+    return res.render("urls_index", templateVars);
   }
 });
 
@@ -264,23 +264,22 @@ app.get("/urls/new", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
   //if (!req.cookies.user_id) {
   if (!req.session.id) {
-    res.redirect("/login");
+    return res.redirect("/login");
   } else {
     //const templateVars = { user_id: req.cookies["user_id"] };
     const templateVars = { user_id: req.session };
-    res.render("urls_new", templateVars);
+    return res.render("urls_new", templateVars);
   }
 });
 
 app.get("/u/:id", (req, res) => {
   // Implement a relevant HTML error message if the id does not exist at GET /u/:id.
   if (!urlDatabase[req.params.id].longURL) {
-    res.status(400).send("Bad Request: URL not found for that id.\n");
-    res.redirect('/urls');
+    return res.status(400).send("Bad Request: URL not found for that id.\n");
   }
   const longURL = urlDatabase[req.params.id].longURL;
   // console.log(longURL);
-  res.redirect(longURL);
+  return res.redirect(longURL);
 });
 
 // EDGE CASE: what if cx requests a short URL with a non-existant id?
@@ -289,8 +288,8 @@ app.get("/urls/:id", (req, res) => {
   //if (!req.cookies.user_id) {
   if (!req.session.id) {
     return res.status(400).send('BAD REQUEST:<br>Please login to view details of this shortened URL.<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
-  } 
-    // Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
+  }
+  // Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
   //const userID = req.cookies.user_id;
   const userID = req.session;
   console.log('id:', req.params.id);
@@ -300,17 +299,17 @@ app.get("/urls/:id", (req, res) => {
     const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
     return res.render("urls_show", templateVars);
   }
-  return res.status(403).send("FORBIDDEN: You don't have permission to access this item.\n")
+  return res.status(403).send("FORBIDDEN: You don't have permission to access this item.\n");
 });
 
 app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  return res.json(urlDatabase);
 });
 
 app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
+  return res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  return console.log(`Example app listening on port ${PORT}!`);
 });
