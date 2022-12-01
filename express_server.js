@@ -1,7 +1,8 @@
 const express = require("express");
-const cookieParser = require('cookie-parser');
+//const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const crypto = require("crypto");
-const { clear } = require("console");
+//const { clear } = require("console");
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
 
@@ -25,6 +26,16 @@ const urlDatabase = {
     userID: "user2RandomID",
   },
 };
+
+// middleware pieces
+app.use(express.urlencoded({ extended: true }));
+//app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['consuelabananahammock', 'consuelabananahammock']
+}));
+app.use(morgan('dev'));
+
 
 //just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done
 const password1 = "purple-monkey-dinosaur"; 
@@ -95,10 +106,6 @@ const urlsForUser = function(id) {
   return newDatabase;
 };
 
-// middleware pieces
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(morgan('dev'));
 
 // EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
 
@@ -106,7 +113,8 @@ app.use(morgan('dev'));
 app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
   // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
-  if (!req.cookies.user_id) {
+  //if (!req.cookies.user_id) {
+  if (!req.session) {
     return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
   } 
   delete urlDatabase[req.params.id];
@@ -116,20 +124,23 @@ app.post("/urls/:id/delete", (req, res) => {
 // endpoint to handle registration form data
 app.post("/register", (req, res) => {
   // If the e-mail or password are empty strings, send back a response with the 400 status code.
-  if (req.body.email === "" || req.body.password === "") {
-    return res.status(400).send('400 - Bad Request');
-  }
-  // If someone tries to register with an email that is already in the users object, send back a response with the 400 status code.
-  const found = findUserByEmail(req.body.email);
+  // if (req.body.email === "" || req.body.password === "") {
+  //   return res.status(400).send('400 - Bad Request');
+  // }
+  // // If someone tries to register with an email that is already in the users object, send back a response with the 400 status code.
+  // const found = findUserByEmail(req.body.email);
 
-  if (found) {
-    return res.status(400).send('400 - Bad Request');
-  }
+  // if (found) {
+  //   return res.status(400).send('400 - Bad Request');
+  // }
 
   const user_id = generateRandomString();
+  console.log(user_id);
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   users[user_id] = { id: user_id, email: req.body.email, password: hashedPassword };
-  res.cookie("user_id", users[user_id]); // I think this is async
+  console.log(users[user_id]);
+  //res.cookie("user_id", users[user_id]); // I think this is async
+  res.session = users[user_id];
   //console.log(users);
   return res.redirect("/urls");
 });
@@ -138,10 +149,14 @@ app.post("/register", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
   // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
-  if (!req.cookies.user_id) {
+  //if (!req.cookies.user_id) {
+  if (!req.session) {
     return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
-  } 
-  urlDatabase[req.params.id.longURL] = req.body.longURL;
+  }
+  // console.log('urlDatabase:', urlDatabase);
+  // console.log('req.params.id:', req.params.id);
+  // console.log('urlDatabase[req.params.id].longURL:', urlDatabase[req.params.id].longURL, 'req.body.longURL:', req.body.longURL);
+  urlDatabase[req.params.id].longURL = req.body.longURL;
   res.redirect("/urls");
 });
 
@@ -149,7 +164,8 @@ app.post("/urls/:id", (req, res) => {
 app.post("/login", (req, res) => {
 
   const emailFound = findUserByEmail(req.body.email);
-
+  console.log('email found:', emailFound);
+  console.log('req.session:', req.session);
   // If a user with that e-mail cannot be found, return a response with a 403 status code.
   if (!emailFound) {
     //console.log('email not matched')
@@ -165,26 +181,34 @@ app.post("/login", (req, res) => {
     return res.status(403).send('403 - Forbidden');
   }
   //console.log('user: ', users[passwordFound]);
-  res.cookie("user_id", users[passwordFound]); // I think this is async
+  //res.cookie("user_id", users[passwordFound]); // I think this is async
+  req.session = users[passwordFound];
   //console.log('Cookies: ', req.cookies); // so this is coming before the new value
+  console.log('req.session:', req.session);
+  console.log('req.session.id:', req.session.id);
+
   res.redirect("/urls");
 });
 
 // add an endpoint to handle a POST to /logout in your Express server
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id", req.body.user_id); // I think this is async
+  //res.clearCookie("user_id", req.body.user_id); // I think this is async
+  req.session = null;
   //console.log('Cookies: ', req.cookies); // so this is coming before the new value
+  console.log('req.session:', req.session);
   res.redirect("/login");
 });
 
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
-  if (!req.cookies.user_id) {
+  //if (!req.cookies.user_id) {
+  if (!req.session) {
     res.status(403).send("ACCESS DENIED: You must be logged in to shorten URLs.\n");
   } else {
     const shortName = generateRandomString();
-    console.log(shortName, req.body, req.cookies.user_id.id);
-    urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.cookies.user_id.id };
+    //console.log(shortName, req.body, req.cookies.user_id.id);
+    //urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.cookies.user_id.id };
+    urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.session.id };
     //const templateVars = { id: shortName, longURL: urlDatabase[shortName].longURL };
     res.redirect("/urls");
   }
@@ -198,44 +222,52 @@ app.get("/", (req, res) => { // request and response
 
 app.get("/login", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
-  if (req.cookies.user_id) {
+  //if (req.cookies.user_id) {
+  if (req.session) {
     res.redirect("/urls");
   } else {
-    const templateVars = { user_id: req.cookies["user_id"] };
+    //const templateVars = { user_id: req.cookies["user_id"] };
+    const templateVars = { user_id: req.session };
     res.render("urls_login", templateVars);
   }
 });
 
 app.get("/register", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
-  if (req.cookies.user_id) {
+  //if (req.cookies.user_id) {
+  if (req.session) {
     res.redirect("/urls");
   } else {
-    const templateVars = { user_id: req.cookies["user_id"] };
+    //const templateVars = { user_id: req.cookies["user_id"] };
+    const templateVars = { user_id: req.session };
     res.render("urls_register", templateVars);
   }
 });
 
 app.get("/urls", (req, res) => {
   // Return HTML with a relevant error message at GET /urls if the user is not logged in.
-  if (!req.cookies.user_id) {
+  //if (!req.cookies.user_id) {
+  if (!req.session) {
     res.status(400).send('BAD REQUEST:<br>Please login to view your shortened URLs<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
   } else {
     // The GET /urls page should only show the logged in user's URLs. 
-    const userUrlDatabase = urlsForUser(req.cookies.user_id);
+    //const userUrlDatabase = urlsForUser(req.cookies.user_id);
+    const userUrlDatabase = urlsForUser(req.session);
     console.log('urls for user id:', userUrlDatabase);
-
-    const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
-    res.render("urls_index", templateVars);
-}
+    //const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
+    const templateVars = { user_id: req.session, urls: userUrlDatabase };
+  res.render("urls_index", templateVars);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
-  if (!req.cookies.user_id) {
+  //if (!req.cookies.user_id) {
+  if (!req.session) {
     res.redirect("/login");
   } else {
-    const templateVars = { user_id: req.cookies["user_id"] };
+    //const templateVars = { user_id: req.cookies["user_id"] };
+    const templateVars = { user_id: req.session };
     res.render("urls_new", templateVars);
   }
 });
@@ -254,14 +286,16 @@ app.get("/u/:id", (req, res) => {
 // EDGE CASE: what if cx requests a short URL with a non-existant id?
 app.get("/urls/:id", (req, res) => {
   // Ensure the GET /urls/:id page returns a relevant error message to the user if they are not logged in.
-  if (!req.cookies.user_id) {
+  //if (!req.cookies.user_id) {
+  if (!req.session) {
     return res.status(400).send('BAD REQUEST:<br>Please login to view details of this shortened URL.<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
   } 
     // Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
-  const userID = req.cookies.user_id;
+  //const userID = req.cookies.user_id;
+  const userID = req.session;
   console.log('id:', req.params.id);
   const userUrlDatabase = urlsForUser(userID);
-  console.log(userUrlDatabase, req.params.id);
+  console.log('userUrlDatabase:', userUrlDatabase, 'id:', req.params.id);
   if (userUrlDatabase && (req.params.id in userUrlDatabase)) {
     const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
     return res.render("urls_show", templateVars);

@@ -18,7 +18,7 @@
         <a class="nav-item nav-link" href="/urls/new" style="display: inline-block; text-align: left; min-width: auto;">Create New URL</a>
       </div>
         <!-- create a form that POSTs to /login -->
-        <% if (user_id){ %>
+        <% if (user_id.id){ %>
           <div class="nav-item" style="display: inline-block; text-align: right; min-width: max-content; margin-right: 20px;">
             Logged in as: <%= user_id.email %>!
           </div>
