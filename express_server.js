@@ -5,7 +5,7 @@ const crypto = require("crypto");
 //const { clear } = require("console");
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
-const { findUserByEmail } = require("./helpers");
+const { generateRandomString, matchPassword, urlsForUser, findUserByEmail } = require("./helpers");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -64,39 +64,6 @@ const users = {
   }
 };
 
-// HELPER FUNCTIONS
-const generateRandomString = function() {
-  let result = crypto.randomBytes(3).toString('hex');
-  //console.log(result);
-  return result;
-};
-
-
-const matchPassword = function(email, password) {
-  for (let user in users) {
-    if (users[user].email === email) {
-      //console.log('user email:', users[user].email, 'user password:', users[user].password);
-      if (bcrypt.compareSync(password, users[user].password)) {
-        //console.log('user id: ', users[user].id);
-        return users[user].id;
-      }
-    }
-  }
-  //console.log('no matched password found');
-  return false;
-};
-
-const urlsForUser = function(id) {
-  const newDatabase = {};
-  for (let item in urlDatabase) {
-    // console.log('item:', item, 'user_id:', urlDatabase[item].userID, 'id.id:', id.id);
-    if (urlDatabase[item].userID === id.id) {
-      newDatabase[item] = urlDatabase[item].longURL;
-
-    }
-  }
-  return newDatabase;
-};
 
 
 // EDGE CASE: may want to add in something to check if it starts with http:// or not, like: if (urlDatabase[shortName])
@@ -166,7 +133,7 @@ app.post("/login", (req, res) => {
 
   //If a user with that e-mail address is located, compare the password given in the form with the existing user's password. If it does not match, return a response with a 403 status code.
 
-  const passwordFound = matchPassword(req.body.email, req.body.password);
+  const passwordFound = matchPassword(req.body.email, req.body.password, users);
 
   if (!passwordFound) {
     //console.log('password not matched')
@@ -246,7 +213,7 @@ app.get("/urls", (req, res) => {
     // The GET /urls page should only show the logged in user's URLs.
     //const userUrlDatabase = urlsForUser(req.cookies.user_id);
     // console.log("cookie:", req.session, "\nusers:", users);
-    const userUrlDatabase = urlsForUser(req.session);
+    const userUrlDatabase = urlsForUser(req.session, urlDatabase);
     // console.log('urls for user id:', userUrlDatabase);
     //const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
     const templateVars = { user_id: req.session, urls: userUrlDatabase };
@@ -287,7 +254,7 @@ app.get("/urls/:id", (req, res) => {
   //const userID = req.cookies.user_id;
   const userID = req.session;
   // console.log('id:', req.params.id);
-  const userUrlDatabase = urlsForUser(userID);
+  const userUrlDatabase = urlsForUser(userID, urlDatabase);
   // console.log('userUrlDatabase:', userUrlDatabase, 'id:', req.params.id);
   if (userUrlDatabase && (req.params.id in userUrlDatabase)) {
     const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
