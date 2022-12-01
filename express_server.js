@@ -16,7 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 //app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
-  keys: ['consuelabananahammock', 'consuelabananahammock']
+  keys: ['consuelabananahammock', 'faloolafilangi'],
+  maxAge: 24 * 60 * 60 * 1000,
 }));
 app.use(morgan('dev'));
 
@@ -96,7 +97,7 @@ const matchPassword = function(email, password) {
 const urlsForUser = function(id) {
   const newDatabase = {};
   for (let item in urlDatabase) {
-    console.log('item:', item, 'user_id:', urlDatabase[item].userID, 'id.id:', id.id);
+    // console.log('item:', item, 'user_id:', urlDatabase[item].userID, 'id.id:', id.id);
     if (urlDatabase[item].userID === id.id) {
       newDatabase[item] = urlDatabase[item].longURL;
 
@@ -134,13 +135,13 @@ app.post("/register", (req, res) => {
   // }
 
   const user_id = generateRandomString();
-  console.log(user_id);
+  // console.log(user_id);
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   users[user_id] = { id: user_id, email: req.body.email, password: hashedPassword };
-  console.log(users[user_id]);
+  // console.log(users[user_id]);
   //res.cookie("user_id", users[user_id]); // I think this is async
   req.session = users[user_id];
-  console.log('req.session:', req.session);
+  // console.log('req.session:', req.session);
   return res.redirect("/urls");
 });
 
@@ -163,8 +164,8 @@ app.post("/urls/:id", (req, res) => {
 app.post("/login", (req, res) => {
 
   const emailFound = findUserByEmail(req.body.email);
-  console.log('email found:', emailFound);
-  console.log('req.session:', req.session);
+  // console.log('email found:', emailFound);
+  // console.log('req.session:', req.session);
   // If a user with that e-mail cannot be found, return a response with a 403 status code.
   if (!emailFound) {
     //console.log('email not matched')
@@ -183,8 +184,8 @@ app.post("/login", (req, res) => {
   //res.cookie("user_id", users[passwordFound]); // I think this is async
   req.session = users[passwordFound];
   //console.log('Cookies: ', req.cookies); // so this is coming before the new value
-  console.log('req.session:', req.session);
-  console.log('req.session.id:', req.session.id);
+  // console.log('req.session:', req.session);
+  // console.log('req.session.id:', req.session.id);
 
   return res.redirect("/urls");
 });
@@ -194,7 +195,7 @@ app.post("/logout", (req, res) => {
   //res.clearCookie("user_id", req.body.user_id); // I think this is async
   req.session = null;
   //console.log('Cookies: ', req.cookies); // so this is coming before the new value
-  console.log('req.session:', req.session);
+  // console.log('req.session:', req.session);
   return res.redirect("/login");
 });
 
@@ -223,7 +224,7 @@ app.get("/login", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
   //if (req.cookies.user_id) {
   if (req.session.id) {
-    console.log('req.session:', req.session);
+    // console.log('req.session:', req.session);
     return res.redirect("/urls");
   } else {
     //const templateVars = { user_id: req.cookies["user_id"] };
@@ -252,8 +253,9 @@ app.get("/urls", (req, res) => {
   } else {
     // The GET /urls page should only show the logged in user's URLs.
     //const userUrlDatabase = urlsForUser(req.cookies.user_id);
+    // console.log("cookie:", req.session, "\nusers:", users);
     const userUrlDatabase = urlsForUser(req.session);
-    console.log('urls for user id:', userUrlDatabase);
+    // console.log('urls for user id:', userUrlDatabase);
     //const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
     const templateVars = { user_id: req.session, urls: userUrlDatabase };
     return res.render("urls_index", templateVars);
@@ -292,9 +294,9 @@ app.get("/urls/:id", (req, res) => {
   // Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
   //const userID = req.cookies.user_id;
   const userID = req.session;
-  console.log('id:', req.params.id);
+  // console.log('id:', req.params.id);
   const userUrlDatabase = urlsForUser(userID);
-  console.log('userUrlDatabase:', userUrlDatabase, 'id:', req.params.id);
+  // console.log('userUrlDatabase:', userUrlDatabase, 'id:', req.params.id);
   if (userUrlDatabase && (req.params.id in userUrlDatabase)) {
     const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
     return res.render("urls_show", templateVars);
