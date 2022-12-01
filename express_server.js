@@ -9,22 +9,7 @@ app.set("view engine", "ejs");
 
 const PORT = 8080; // default port 8080
 
-// HELPER FUNCTIONS
-const generateRandomString = function() {
-  let result = crypto.randomBytes(3).toString('hex');
-  console.log(result);
-  return result;
-};
-
-const findUserByField = function(field, value) {
-  for (let user in users) {
-    if (users[user][field] === value) {
-      return true;
-    }
-  }
-  return false;
-};
-
+// DATABASE OBJECTS
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
@@ -41,6 +26,37 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+};
+
+// HELPER FUNCTIONS
+const generateRandomString = function() {
+  let result = crypto.randomBytes(3).toString('hex');
+  console.log(result);
+  return result;
+};
+
+const findUserByEmail = function(value) {
+  for (let user in users) {
+    console.log('user:', [users[user]]);
+    if (users[user].email === value) {
+      return users[user].id;
+    }
+  }
+  return false;
+};
+
+const matchPassword = function(email, password) {
+  for (let user in users) {
+    if (users[user].email === email) {
+      console.log('user email:', users[user].email, 'user password:', users[user].password);
+      if (users[user].password === password) {
+        console.log('user id: ', users[user].id);
+        return users[user].id;
+      }
+    }
+  }
+  console.log('no matched password found');
+  return false;
 };
 
 // middleware pieces
@@ -64,16 +80,16 @@ app.post("/register", (req, res) => {
     return res.status(400).send('400 - Bad Request');
   }
   // If someone tries to register with an email that is already in the users object, send back a response with the 400 status code.
-  const emailFound = findUserByField("email", req.body.email);
+  const found = findUserByEmail(req.body.email);
 
-  if (emailFound) {
+  if (found) {
     return res.status(400).send('400 - Bad Request');
   }
 
   const user_id = generateRandomString();
   users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
   res.cookie("user_id", users[user_id]); // I think this is async
-  console.log(users);
+  //console.log(users);
   return res.redirect("/urls")
 });
 
@@ -86,16 +102,34 @@ app.post("/urls/:id", (req, res) => {
 
 // add an endpoint to handle a POST to /login in your Express server
 app.post("/login", (req, res) => {
-  res.cookie("user_id", req.body.user_id); // I think this is async
-  console.log('Cookies: ', req.cookies); // so this is coming before the new value
+
+  const emailFound = findUserByEmail(req.body.email);
+
+  // If a user with that e-mail cannot be found, return a response with a 403 status code.
+  if (!emailFound) {
+    //console.log('email not matched')
+    return res.status(403).send('403 - Forbidden');
+  }
+
+  //If a user with that e-mail address is located, compare the password given in the form with the existing user's password. If it does not match, return a response with a 403 status code.
+
+  const passwordFound = matchPassword(req.body.email, req.body.password);
+
+  if (!passwordFound) {
+    //console.log('password not matched')
+    return res.status(403).send('403 - Forbidden');
+  }
+  //console.log('user: ', users[passwordFound]);
+  res.cookie("user_id", users[passwordFound]); // I think this is async
+  //console.log('Cookies: ', req.cookies); // so this is coming before the new value
   res.redirect("/urls");
 });
 
 // add an endpoint to handle a POST to /logout in your Express server
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id", req.body.user_id); // I think this is async
-  console.log('Cookies: ', req.cookies); // so this is coming before the new value
-  res.redirect("/urls");
+  //console.log('Cookies: ', req.cookies); // so this is coming before the new value
+  res.redirect("/login");
 });
 
 app.post("/urls", (req, res) => {
