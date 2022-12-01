@@ -11,6 +11,15 @@ app.set("view engine", "ejs");
 
 const PORT = 8080; // default port 8080
 
+// middleware pieces
+app.use(express.urlencoded({ extended: true }));
+//app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['consuelabananahammock', 'consuelabananahammock']
+}));
+app.use(morgan('dev'));
+
 // DATABASE OBJECTS
 // const urlDatabase = {
 //   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -26,16 +35,6 @@ const urlDatabase = {
     userID: "user2RandomID",
   },
 };
-
-// middleware pieces
-app.use(express.urlencoded({ extended: true }));
-//app.use(cookieParser());
-app.use(cookieSession({
-  name: 'session',
-  keys: ['consuelabananahammock', 'consuelabananahammock']
-}));
-app.use(morgan('dev'));
-
 
 //just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done
 const password1 = "purple-monkey-dinosaur"; 
@@ -114,7 +113,7 @@ app.post("/urls/:id/delete", (req, res) => {
   // console.log(`${req.params.id} has been deleted.`); // Log the POST request body to the console
   // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
   //if (!req.cookies.user_id) {
-  if (!req.session) {
+  if (!req.session.id) {
     return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
   } 
   delete urlDatabase[req.params.id];
@@ -140,8 +139,8 @@ app.post("/register", (req, res) => {
   users[user_id] = { id: user_id, email: req.body.email, password: hashedPassword };
   console.log(users[user_id]);
   //res.cookie("user_id", users[user_id]); // I think this is async
-  res.session = users[user_id];
-  //console.log(users);
+  req.session = users[user_id];
+  console.log('req.session:', req.session);
   return res.redirect("/urls");
 });
 
@@ -150,7 +149,7 @@ app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
   // Update the edit and delete endpoints such that only the owner (creator) of the URL can edit or delete the link. 
   //if (!req.cookies.user_id) {
-  if (!req.session) {
+  if (!req.session.id) {
     return res.status(400).send('BAD REQUEST:<br>Please login.<br><a href="/login">LOGIN</a>\n');
   }
   // console.log('urlDatabase:', urlDatabase);
@@ -202,7 +201,7 @@ app.post("/logout", (req, res) => {
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
   //if (!req.cookies.user_id) {
-  if (!req.session) {
+  if (!req.session.id) {
     res.status(403).send("ACCESS DENIED: You must be logged in to shorten URLs.\n");
   } else {
     const shortName = generateRandomString();
@@ -223,7 +222,8 @@ app.get("/", (req, res) => { // request and response
 app.get("/login", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
   //if (req.cookies.user_id) {
-  if (req.session) {
+  if (req.session.id) {
+    console.log('req.session:', req.session);
     res.redirect("/urls");
   } else {
     //const templateVars = { user_id: req.cookies["user_id"] };
@@ -235,7 +235,7 @@ app.get("/login", (req, res) => {
 app.get("/register", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
   //if (req.cookies.user_id) {
-  if (req.session) {
+  if (req.session.id) {
     res.redirect("/urls");
   } else {
     //const templateVars = { user_id: req.cookies["user_id"] };
@@ -247,7 +247,7 @@ app.get("/register", (req, res) => {
 app.get("/urls", (req, res) => {
   // Return HTML with a relevant error message at GET /urls if the user is not logged in.
   //if (!req.cookies.user_id) {
-  if (!req.session) {
+  if (!req.session.id) {
     res.status(400).send('BAD REQUEST:<br>Please login to view your shortened URLs<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
   } else {
     // The GET /urls page should only show the logged in user's URLs. 
@@ -263,7 +263,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   // if user is logged in, GET /login should redirect to GET /urls
   //if (!req.cookies.user_id) {
-  if (!req.session) {
+  if (!req.session.id) {
     res.redirect("/login");
   } else {
     //const templateVars = { user_id: req.cookies["user_id"] };
@@ -287,7 +287,7 @@ app.get("/u/:id", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   // Ensure the GET /urls/:id page returns a relevant error message to the user if they are not logged in.
   //if (!req.cookies.user_id) {
-  if (!req.session) {
+  if (!req.session.id) {
     return res.status(400).send('BAD REQUEST:<br>Please login to view details of this shortened URL.<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
   } 
     // Ensure the GET /urls/:id page returns a relevant error message to the user if they do not own the URL.
