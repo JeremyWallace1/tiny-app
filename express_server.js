@@ -181,8 +181,13 @@ app.get("/register", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
-  res.render("urls_index", templateVars);
+  // Return HTML with a relevant error message at GET /urls if the user is not logged in.
+  if (!req.cookies.user_id) {
+    res.status(400).send('BAD REQUEST:<br>Please login to view your shortened URLs<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
+  } else {
+    const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
+    res.render("urls_index", templateVars);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
