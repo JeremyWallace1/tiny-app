@@ -17,13 +17,14 @@ const PORT = 8080; // default port 8080
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
-    userID: "aJ48lW",
+    userID: "user3RandomID",
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
-    userID: "aJ48lW",
+    userID: "user2RandomID",
   },
 };
+
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -35,6 +36,11 @@ const users = {
     email: "user2@example.com",
     password: "dishwasher-funk",
   },
+  user3RandomID: {
+    id: "user3RandomID",
+    email: "user3@example.com",
+    password: "simple",
+  }
 };
 
 // HELPER FUNCTIONS
@@ -66,6 +72,18 @@ const matchPassword = function(email, password) {
   }
   //console.log('no matched password found');
   return false;
+};
+
+const urlsForUser = function(id) {
+  const newDatabase = {};
+  for (let item in urlDatabase) {
+    console.log('item:', item, 'user_id:', urlDatabase[item].userID, 'id.id:', id.id);
+    if (urlDatabase[item].userID === id.id) {
+      newDatabase[item] = urlDatabase[item].longURL; 
+
+    }
+  }
+  return newDatabase;
 };
 
 // middleware pieces
@@ -185,9 +203,18 @@ app.get("/urls", (req, res) => {
   if (!req.cookies.user_id) {
     res.status(400).send('BAD REQUEST:<br>Please login to view your shortened URLs<br><a href="/login">LOGIN</a> or <a href="/register">REGISTER</a>\n');
   } else {
-    const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
-    res.render("urls_index", templateVars);
-  }
+    // The GET /urls page should only show the logged in user's URLs. 
+    const userUrlDatabase = urlsForUser(req.cookies.user_id);
+    console.log('urls for user id:', userUrlDatabase);
+    if (userUrlDatabase) {
+      const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
+      res.render("urls_index", templateVars);
+    } else {
+      const templateVars = { user_id: req.cookies["user_id"], urls: userUrlDatabase };
+      res.render("urls_index", templateVars);
+  
+    }
+}
 });
 
 app.get("/urls/new", (req, res) => {
@@ -213,8 +240,13 @@ app.get("/u/:id", (req, res) => {
 
 // EDGE CASE: what if cx requests a short URL with a non-existant id?
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { user_id: req.cookies["user_id"], id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
-  res.render("urls_show", templateVars);
+  // Ensure the GET /urls/:id page returns a relevant error message to the user if they are not logged in.
+  if (!req.cookies.user_id) {
+    res.redirect("/login");
+  } else {
+    const templateVars = { user_id: req.cookies["user_id"], id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
+    res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/urls.json", (req, res) => {
