@@ -10,11 +10,20 @@ app.set("view engine", "ejs");
 const PORT = 8080; // default port 8080
 
 // DATABASE OBJECTS
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com",
+// };
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
-
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -96,7 +105,7 @@ app.post("/register", (req, res) => {
 // UPDATE (done as POST, but ideally done as PUT due to browser limitations)
 app.post("/urls/:id", (req, res) => {
   //rewrite the entry in urlDatabase for the id passed using the body passed const id = req.params.id;
-  urlDatabase[req.params.id] = req.body.longURL;
+  urlDatabase[req.params.id.longURL] = req.body.longURL;
   res.redirect("/urls");
 });
 
@@ -138,9 +147,9 @@ app.post("/urls", (req, res) => {
     res.status(403).send("ACCESS DENIED: You must be logged in to shorten URLs.\n");
   } else {
     const shortName = generateRandomString();
-    urlDatabase[shortName] = req.body.longURL;
+    urlDatabase[shortName].longURL = req.body.longURL;
     //console.log(urlDatabase);
-    const templateVars = { id: shortName, longURL: urlDatabase[shortName] };
+    const templateVars = { id: shortName, longURL: urlDatabase[shortName].longURL };
     res.render("urls_show", templateVars);
   }
   console.log(urlDatabase);
@@ -156,7 +165,7 @@ app.get("/login", (req, res) => {
   if (req.cookies.user_id) {
     res.redirect("/urls");
   } else {
-    const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
+    const templateVars = { user_id: req.cookies["user_id"] };
     res.render("urls_login", templateVars);
   }
 });
@@ -166,7 +175,7 @@ app.get("/register", (req, res) => {
   if (req.cookies.user_id) {
     res.redirect("/urls");
   } else {
-    const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
+    const templateVars = { user_id: req.cookies["user_id"] };
     res.render("urls_register", templateVars);
   }
 });
@@ -188,18 +197,18 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   // Implement a relevant HTML error message if the id does not exist at GET /u/:id.
-  if (!urlDatabase[req.params.id]) {
+  if (!urlDatabase[req.params.id].longURL) {
     res.status(400).send("Bad Request: URL not found for that id.\n");
     res.redirect('/urls');
   }
-  const longURL = urlDatabase[req.params.id];
+  const longURL = urlDatabase[req.params.id].longURL;
   // console.log(longURL);
   res.redirect(longURL);
 });
 
 // EDGE CASE: what if cx requests a short URL with a non-existant id?
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { user_id: req.cookies["user_id"], id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { user_id: req.cookies["user_id"], id: req.params.id, longURL: urlDatabase[req.params.id].longURL };
   res.render("urls_show", templateVars);
 });
 
