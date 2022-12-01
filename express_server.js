@@ -134,11 +134,16 @@ app.post("/logout", (req, res) => {
 
 app.post("/urls", (req, res) => {
   //console.log(req.body); // Log the POST request body to the console
-  const shortName = generateRandomString();
-  urlDatabase[shortName] = req.body.longURL;
-  //console.log(urlDatabase);
-  const templateVars = { id: shortName, longURL: urlDatabase[shortName] };
-  res.render("urls_show", templateVars);
+  if (!req.cookies.user_id) {
+    res.status(403).send("ACCESS DENIED: You must be logged in to shorten URLs.\n");
+  } else {
+    const shortName = generateRandomString();
+    urlDatabase[shortName] = req.body.longURL;
+    //console.log(urlDatabase);
+    const templateVars = { id: shortName, longURL: urlDatabase[shortName] };
+    res.render("urls_show", templateVars);
+  }
+  console.log(urlDatabase);
 });
 
 // The order of route definitions matters!
@@ -147,13 +152,23 @@ app.get("/", (req, res) => { // request and response
 });
 
 app.get("/login", (req, res) => {
-  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
-  res.render("urls_login", templateVars);
+  // if user is logged in, GET /login should redirect to GET /urls
+  if (req.cookies.user_id) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
+    res.render("urls_login", templateVars);
+  }
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
-  res.render("urls_register", templateVars);
+  // if user is logged in, GET /login should redirect to GET /urls
+  if (req.cookies.user_id) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = { user_id: req.cookies["user_id"], urls: urlDatabase };
+    res.render("urls_register", templateVars);
+  }
 });
 
 app.get("/urls", (req, res) => {
@@ -162,11 +177,21 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user_id: req.cookies["user_id"] };
-  res.render("urls_new", templateVars);
+  // if user is logged in, GET /login should redirect to GET /urls
+  if (!req.cookies.user_id) {
+    res.redirect("/login");
+  } else {
+    const templateVars = { user_id: req.cookies["user_id"] };
+    res.render("urls_new", templateVars);
+  }
 });
 
 app.get("/u/:id", (req, res) => {
+  // Implement a relevant HTML error message if the id does not exist at GET /u/:id.
+  if (!urlDatabase[req.params.id]) {
+    res.status(400).send("Bad Request: URL not found for that id.\n");
+    res.redirect('/urls');
+  }
   const longURL = urlDatabase[req.params.id];
   // console.log(longURL);
   res.redirect(longURL);
