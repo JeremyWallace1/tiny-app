@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser');
 const crypto = require("crypto");
 //const { clear } = require("console");
 const morgan = require('morgan');
+const bcrypt = require("bcryptjs");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -25,21 +26,29 @@ const urlDatabase = {
   },
 };
 
+//just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done
+const password1 = "purple-monkey-dinosaur"; 
+const hashedPassword1 = bcrypt.hashSync(password1, 10);
+const password2 = "dishwasher-funk"; 
+const hashedPassword2 = bcrypt.hashSync(password2, 10);
+const password3 = "simple"; 
+const hashedPassword3 = bcrypt.hashSync(password3, 10);
+
 const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: hashedPassword1,
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: hashedPassword2,
   },
   user3RandomID: {
     id: "user3RandomID",
     email: "user3@example.com",
-    password: "simple",
+    password: hashedPassword3,
   }
 };
 
@@ -64,7 +73,7 @@ const matchPassword = function(email, password) {
   for (let user in users) {
     if (users[user].email === email) {
       //console.log('user email:', users[user].email, 'user password:', users[user].password);
-      if (users[user].password === password) {
+      if (bcrypt.compareSync(password, users[user].password)) {
         //console.log('user id: ', users[user].id);
         return users[user].id;
       }
@@ -118,7 +127,8 @@ app.post("/register", (req, res) => {
   }
 
   const user_id = generateRandomString();
-  users[user_id] = { id: user_id, email: req.body.email, password: req.body.password };
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+  users[user_id] = { id: user_id, email: req.body.email, password: hashedPassword };
   res.cookie("user_id", users[user_id]); // I think this is async
   //console.log(users);
   return res.redirect("/urls");
@@ -173,12 +183,12 @@ app.post("/urls", (req, res) => {
     res.status(403).send("ACCESS DENIED: You must be logged in to shorten URLs.\n");
   } else {
     const shortName = generateRandomString();
-    urlDatabase[shortName].longURL = req.body.longURL;
-    //console.log(urlDatabase);
-    const templateVars = { id: shortName, longURL: urlDatabase[shortName].longURL };
-    res.render("urls_show", templateVars);
+    console.log(shortName, req.body, req.cookies.user_id.id);
+    urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.cookies.user_id.id };
+    //const templateVars = { id: shortName, longURL: urlDatabase[shortName].longURL };
+    res.redirect("/urls");
   }
-  console.log(urlDatabase);
+  //console.log(urlDatabase);
 });
 
 // The order of route definitions matters!
