@@ -5,6 +5,7 @@ const crypto = require("crypto");
 //const { clear } = require("console");
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
+const { findUserByEmail } = require("./helpers");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -70,15 +71,6 @@ const generateRandomString = function() {
   return result;
 };
 
-const findUserByEmail = function(value) {
-  for (let user in users) {
-    //console.log('user:', [users[user]]);
-    if (users[user].email === value) {
-      return users[user].id;
-    }
-  }
-  return false;
-};
 
 const matchPassword = function(email, password) {
   for (let user in users) {
@@ -163,7 +155,7 @@ app.post("/urls/:id", (req, res) => {
 // add an endpoint to handle a POST to /login in your Express server
 app.post("/login", (req, res) => {
 
-  const emailFound = findUserByEmail(req.body.email);
+  const emailFound = findUserByEmail(req.body.email, users);
   // console.log('email found:', emailFound);
   // console.log('req.session:', req.session);
   // If a user with that e-mail cannot be found, return a response with a 403 status code.
