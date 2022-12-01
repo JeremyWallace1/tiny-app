@@ -31,13 +31,13 @@ const users = {
 // HELPER FUNCTIONS
 const generateRandomString = function() {
   let result = crypto.randomBytes(3).toString('hex');
-  console.log(result);
+  //console.log(result);
   return result;
 };
 
 const findUserByEmail = function(value) {
   for (let user in users) {
-    console.log('user:', [users[user]]);
+    //console.log('user:', [users[user]]);
     if (users[user].email === value) {
       return users[user].id;
     }
@@ -48,14 +48,14 @@ const findUserByEmail = function(value) {
 const matchPassword = function(email, password) {
   for (let user in users) {
     if (users[user].email === email) {
-      console.log('user email:', users[user].email, 'user password:', users[user].password);
+      //console.log('user email:', users[user].email, 'user password:', users[user].password);
       if (users[user].password === password) {
-        console.log('user id: ', users[user].id);
+        //console.log('user id: ', users[user].id);
         return users[user].id;
       }
     }
   }
-  console.log('no matched password found');
+  //console.log('no matched password found');
   return false;
 };
 
