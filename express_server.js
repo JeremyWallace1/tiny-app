@@ -20,7 +20,7 @@ app.use(cookieSession({
   maxAge: 24 * 60 * 60 * 1000,
 }));
 app.use(morgan('dev'));
-app.use(methodOverride('_method'))
+app.use(methodOverride('_method'));
 
 // DATABASE OBJECTS
 // const urlDatabase = {
@@ -33,17 +33,16 @@ const urlDatabase = {
     userID: "user3RandomID",
     totalVisits: 0,
     uniqueVisitors: 0,
+    visitorsLog: [[]],
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
     userID: "user2RandomID",
     totalVisits: 0,
     uniqueVisitors: 0,
+    visitorsLog: [[]],
   },
 };
-
-const visits = { b6UTxQ: {}, i3BoGr: {} }; // # of visits
-
 
 //just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done.
 const password1 = "purple-monkey-dinosaur";
@@ -178,7 +177,7 @@ app.post("/urls", (req, res) => {
     const shortName = generateRandomString();
     //console.log(shortName, req.body, req.cookies.user_id.id);
     //urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.cookies.user_id.id };
-    urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.session.id };
+    urlDatabase[shortName] = { longURL: req.body.longURL, userID: req.session.id, totalVisits: 0, uniqueVisitors: 0, visitorsLog: [[]], };
     //const templateVars = { id: shortName, longURL: urlDatabase[shortName].longURL };
     return res.redirect("/urls");
   }
@@ -261,11 +260,12 @@ app.get("/u/:id", (req, res) => {
     urlDatabase[siteId].uniqueVisitors += 1;
   }
 
-  const visitId = req.cookies.visitorId;
   const longURL = urlDatabase[siteId].longURL;
 
   urlDatabase[siteId].totalVisits += 1;
-
+  const timeStamp = Date();
+  urlDatabase[siteId].visitorsLog.push([timeStamp, req.cookies.visitorId]);
+  // console.log(urlDatabase[siteId].visitorsLog);
   // console.log("Number of visits to shortURLs:", urlDatabase);
   // console.log("total visits to this shortURL:",siteId, urlDatabase[siteId]['totalVisits']);
   // console.log("Number of visits by:", [visitId], "to", siteId, "=", urlDatabase[siteId][visitId]);
@@ -287,7 +287,8 @@ app.get("/urls/:id", (req, res) => {
   const userUrlDatabase = urlsForUser(userID, urlDatabase);
   // console.log('userUrlDatabase:', userUrlDatabase, 'id:', req.params.id);
   if (userUrlDatabase && (req.params.id in userUrlDatabase)) {
-    const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL, totalVisits: urlDatabase[req.params.id].totalVisits, uniqueVisitors: urlDatabase[req.params.id].uniqueVisitors };
+    const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL, totalVisits: urlDatabase[req.params.id].totalVisits, uniqueVisitors: urlDatabase[req.params.id].uniqueVisitors, visitorsLog: urlDatabase[req.params.id].visitorsLog };
+    // console.log(urlDatabase[req.params.id].visitorsLog);
     return res.render("urls_show", templateVars);
   }
   return res.status(403).send("FORBIDDEN: You don't have permission to access this item.\n");
