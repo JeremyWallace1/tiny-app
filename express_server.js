@@ -250,7 +250,7 @@ app.get("/u/:id", (req, res) => {
     return res.status(400).send("Bad Request: URL not found for that id.\n");
   }
   // console.log(req.cookies.visitorId);
-  let visitorId = req.cookies.visitorId || generateRandomString();
+  let visitorId = req.cookies.visitorId || generateRandomString(); // short-circuit evaluation
   if (req.cookies.visitorId === undefined) {
     // visitorId = generateRandomString();
     res.cookie('visitorId', visitorId);
