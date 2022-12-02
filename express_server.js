@@ -110,7 +110,7 @@ app.post("/register", (req, res) => {
   //res.cookie("user_id", users[user_id]); // I think this is async
   req.session = users[user_id];
   // console.log('req.session:', req.session);
-  console.log('user database:\n', users);
+  // console.log('user database:\n', users);
   return res.redirect("/urls");
 });
 
@@ -264,6 +264,7 @@ app.get("/u/:id", (req, res) => {
 
   urlDatabase[siteId].totalVisits += 1;
   const timeStamp = Date();
+  console.log(timeStamp, req.cookies.siteId, req.cookies.visitorId);
   urlDatabase[siteId].visitorsLog.push([timeStamp, req.cookies.visitorId]);
   // console.log(urlDatabase[siteId].visitorsLog);
   // console.log("Number of visits to shortURLs:", urlDatabase);

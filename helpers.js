@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const cookieParser = require('cookie-parser');
 
 // HELPER FUNCTIONS
 const generateRandomString = function() {
@@ -45,5 +46,6 @@ const getUserByEmail = function(email, database) {
   }
   return;
 };
+
 
 module.exports = { generateRandomString, matchPassword, urlsForUser, getUserByEmail };
