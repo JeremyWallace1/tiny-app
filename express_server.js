@@ -250,9 +250,10 @@ app.get("/u/:id", (req, res) => {
     return res.status(400).send("Bad Request: URL not found for that id.\n");
   }
   // console.log(req.cookies.visitorId);
+  let visitorId = req.cookies.visitorId || generateRandomString();
   if (req.cookies.visitorId === undefined) {
-    const randNum = generateRandomString();
-    res.cookie('visitorId', randNum);
+    // visitorId = generateRandomString();
+    res.cookie('visitorId', visitorId);
     res.cookie(siteId, siteId);
     urlDatabase[siteId].uniqueVisitors += 1;
   } else if (req.cookies[siteId] === undefined) {
@@ -264,8 +265,8 @@ app.get("/u/:id", (req, res) => {
 
   urlDatabase[siteId].totalVisits += 1;
   const timeStamp = Date();
-  console.log(timeStamp, req.cookies.siteId, req.cookies.visitorId);
-  urlDatabase[siteId].visitorsLog.push([timeStamp, req.cookies.visitorId]);
+  console.log(timeStamp, req.cookies.siteId, visitorId);
+  urlDatabase[siteId].visitorsLog.push([timeStamp, visitorId]);
   // console.log(urlDatabase[siteId].visitorsLog);
   // console.log("Number of visits to shortURLs:", urlDatabase);
   // console.log("total visits to this shortURL:",siteId, urlDatabase[siteId]['totalVisits']);
