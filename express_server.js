@@ -1,5 +1,5 @@
 const express = require("express");
-//const cookieParser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const morgan = require('morgan');
 const bcrypt = require("bcryptjs");
@@ -13,7 +13,7 @@ const PORT = 8080; // default port 8080
 
 // middleware pieces
 app.use(express.urlencoded({ extended: true }));
-//app.use(cookieParser());
+app.use(cookieParser());
 app.use(cookieSession({
   name: 'session',
   keys: ['consuelabananahammock', 'faloolafilangi'],
@@ -31,14 +31,18 @@ const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
     userID: "user3RandomID",
+    totalVisits: 0,
+    uniqueVisitors: 0,
   },
   i3BoGr: {
     longURL: "https://www.google.ca",
     userID: "user2RandomID",
+    totalVisits: 0,
+    uniqueVisitors: 0,
   },
 };
 
-const visits = { b6UTxQ: 0, i3BoGr: 0 }; // # of visits
+const visits = { b6UTxQ: {}, i3BoGr: {} }; // # of visits
 
 
 //just keeping these so that we have test people to run without having to constantly recreate them. Normally this would never be done.
@@ -242,16 +246,30 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   // Implement a relevant HTML error message if the id does not exist at GET /u/:id.
+  const siteId = req.params.id;
   if (!urlDatabase[req.params.id].longURL) {
     return res.status(400).send("Bad Request: URL not found for that id.\n");
   }
-  const longURL = urlDatabase[req.params.id].longURL;
-  // console.log(longURL);
-  if (!visits[req.params.id]) {
-    visits[req.params.id] = 0;
+  // console.log(req.cookies.visitorId);
+  if (req.cookies.visitorId === undefined) {
+    const randNum = generateRandomString();
+    res.cookie('visitorId', randNum);
+    res.cookie(siteId, siteId);
+    urlDatabase[siteId].uniqueVisitors += 1;
+  } else if (req.cookies[siteId] === undefined) {
+    res.cookie(siteId, siteId);
+    urlDatabase[siteId].uniqueVisitors += 1;
   }
-  visits[req.params.id] += 1;
-  console.log("Number of visits to shortURLs:", visits);
+
+  const visitId = req.cookies.visitorId;
+  const longURL = urlDatabase[siteId].longURL;
+
+  urlDatabase[siteId].totalVisits += 1;
+
+  // console.log("Number of visits to shortURLs:", urlDatabase);
+  // console.log("total visits to this shortURL:",siteId, urlDatabase[siteId]['totalVisits']);
+  // console.log("Number of visits by:", [visitId], "to", siteId, "=", urlDatabase[siteId][visitId]);
+
   return res.redirect(longURL);
 });
 
@@ -269,7 +287,7 @@ app.get("/urls/:id", (req, res) => {
   const userUrlDatabase = urlsForUser(userID, urlDatabase);
   // console.log('userUrlDatabase:', userUrlDatabase, 'id:', req.params.id);
   if (userUrlDatabase && (req.params.id in userUrlDatabase)) {
-    const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL, visits: visits };
+    const templateVars = { user_id: userID, id: req.params.id, longURL: urlDatabase[req.params.id].longURL, totalVisits: urlDatabase[req.params.id].totalVisits, uniqueVisitors: urlDatabase[req.params.id].uniqueVisitors };
     return res.render("urls_show", templateVars);
   }
   return res.status(403).send("FORBIDDEN: You don't have permission to access this item.\n");
